@@ -117,6 +117,7 @@ def main(url, length):
     print(f"总字数: {total_chars_no_punct}")
     print(f"平均每分钟: {chars_per_minute_no_punct} 字")
     print(f"平均每字: {seconds_per_char_no_punct} 秒\n")
+    input("按Enter键退出...")
 
 
 if __name__ == '__main__':
