@@ -12,14 +12,18 @@ def get_article_html(url):
     return response.text
 
 
-def get_article(html, url):
+def get_article(html, url, length):
     soup = BeautifulSoup(html, 'html.parser')
     # 获取文章标题
     title = soup.find('p', class_='text-title').get_text()
     # 获取文章作者
     author = soup.find('p', class_='text-author').get_text()
     # 获取文章引言
-    intro = soup.select('div.one-quote-warp p')[0].get_text()
+    intro = soup.select('div.one-quote-warp p')
+    if intro:
+        intro = intro[0].get_text()
+    else:
+        intro = "未找到引言"
     # 获取页面所有主要内容
     content = soup.find('div', class_='text-content')
     p_tags = content.findChildren('p', recursive=True)
@@ -31,8 +35,17 @@ def get_article(html, url):
 “{intro}”\n
 """
 
+    if length == 1:
+        end_index = round(len(p_tags) / 4) + 2
+    elif length == 2:
+        end_index = round(len(p_tags) / 2) + 2
+    elif length == 3:
+        end_index = round(len(p_tags) / 4 * 3) + 2
+    else:
+        end_index = len(p_tags)
+
     # 添加正文内容
-    for p in p_tags[2:]:
+    for p in p_tags[2:end_index]:
         article += p.get_text() + '\n'
 
     # 添加文章链接
@@ -74,13 +87,15 @@ def calculate_reading_stats(total_time, total_chars, total_chars_no_punct):
     return total_time, chars_per_minute, chars_per_minute_no_punct, seconds_per_char, seconds_per_char_no_punct
 
 
-def main(url):
+def main(url, length):
     html = get_article_html(url)
-    article = get_article(html, url)
+    article = get_article(html, url, length)
     total_chars = count_characters(article, True)
     total_chars_no_punct = count_characters(article, False)
 
     print(f"\n文章获取成功！")
+    print(f"文章长度: {total_chars_no_punct} 字")
+    print("请调整终端窗口到合适大小")
     input("准备完成后按回车键开始计时阅读...")
     clear_screen()
     start_time = start_timer()
@@ -112,6 +127,7 @@ if __name__ == '__main__':
         6143, 6145, 6138, 6142, 6140,
         6139, 6141, 6131, 6136, 6137,
         6133, 6134, 6132, 6129, 6128,
+        6162,
 
     ]
 
@@ -125,8 +141,15 @@ if __name__ == '__main__':
     print("已收录 " + str(len(article_id_list)) + " 篇文章")
     print("测试时将从中随机选取\n")
     input("按Enter键继续...")
+    while True:
+        choice = input("\n请决定你要阅读的文本的长度（1=较短，2=中等，3=较长，4=全文）:")
+        if choice == '1' or choice == '2' or choice == '3' or choice == '4':
+            length_ = int(choice)
+            break
+        else:
+            print("输入错误，请重新输入")
 
     article_id = str(random.choice(article_id_list))
 
     url_ = f'http://m.wufazhuce.com/article/{article_id}'
-    main(url_)
+    main(url_, length_)
